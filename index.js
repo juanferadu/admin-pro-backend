@@ -12,6 +12,9 @@ const app = express()
 //Configurar Cors
 app.use(cors())
 
+//Lectura y parseo del body
+app.use(express.json());
+
 //Base de Datos
 
 dbConnection();
@@ -21,14 +24,12 @@ dbConnection();
 //IozwfNYmiDXS3SQ0
 // ip 201.246.119.69
 
-console.log(process.env);
+//Variables de entorno de la aplicacion
+//console.log(process.env);
 
-app.get('/', (req, res) => {
-  res.status(400).json({
-      ok: true,
-      msg: "Hola Mundo!"
-  });   
-})
+//Rutas
+app.use('/api/usuarios',require('./routes/usuarios')); 
+app.use('/api/login',require('./routes/auth')); 
 
 app.listen(process.env.port, () => {
   console.log(`Example app listening at http://localhost:${process.env.port}`)
