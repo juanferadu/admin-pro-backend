@@ -1,69 +1,49 @@
 const {response} = require('express');
 const bcrypt = require('bcryptjs');
-const Usuario = require('../models/usuario');
+const Hospital = require('../models/hospital');
 const {generarJWT} = require('../helpers/jwt');
 
-const getUsuarios = async(req, res) => {
+const getHospitales = async(req, res) => {
 
-    const desde = Number(req.query.desde) || 0;
-    //console.log(desde);
-
-    // const usuarios = await Usuario.find({},'nombre email role google')
-    //                                 .skip(desde)
-    //                                 .limit(5);
-
-    // const total = await Usuario.count();
-
-    //Funciones asincronas 
-    const [usuarios, total] =  await Promise.all([
-        Usuario.find({},'nombre email role google')
-        .skip(desde)
-        .limit(5),
-        Usuario.countDocuments()
-    ]);
-
+    const hospitales = await Hospital.find()
+                        .populate('usuario','nombre');
     res.json({ //.status(400)
         ok: true,
-        usuarios,
-        total,
+        hospitales,
         uid: req.uid
       })
   }
 
-  const crearUsuario = async(req, res = response) => {
+  const crearHospital = async(req, res = response) => {
     
     //console.log(req.body);
-    const { email, password, nombre} = req.body;    
+    const { nombre} = req.body;    
    
     try {
 
-        const existeMail = await Usuario.findOne({email});
+        const existeHospital = await Hospital.findOne({nombre});
 
-        if(existeMail)
+        if(existeHospital)
         {
         return res.status(400).json(
                 {
                     ok: false,
-                    msg:"El correo ya está registrado"
+                    msg:"El Hospital ya está registrado"
                 });
         }
 
-        const usuario = new Usuario(req.body);
-
-        //Encriptar contraseña
-        const salt = bcrypt.genSaltSync();
-        usuario.password = bcrypt.hashSync(password,salt);
-
-        //Guardar Usuario
-        await usuario.save();
-
-        //Crear Token
-        const token = await generarJWT(usuario.id)
+        const uid = req.uid;
+        const hospital = new Hospital({
+            usuario: uid,
+            ...req.body});
+        
+       
+        //Guardar Hospital
+        const hospitalDB = await hospital.save();    
         
         res.json({ //.status(400)
             ok: true,
-            usuario,
-            token
+            hospital: hospitalDB           
             })
         
     } catch (error) {
@@ -78,7 +58,7 @@ const getUsuarios = async(req, res) => {
   }
 
 
-  const actualizarUsuario = async(req, res = response) => {
+  const actualizarHospital = async(req, res = response) => {
 
     //TODO: Validar token y comprobar si es usuario correcto
 
@@ -87,7 +67,7 @@ const getUsuarios = async(req, res) => {
 
     try {
 
-        const usuarioDB = await Usuario.findById(uid);
+        const usuarioDB = await Hospital.findById(uid);
 
             if(!usuarioDB)
             {
@@ -106,7 +86,7 @@ const getUsuarios = async(req, res) => {
              if(usuarioDB.email != email)
              {
              
-                const existeEmail = await Usuario.findOne({email});
+                const existeEmail = await Hospital.findOne({email});
                 if(existeEmail)
                 {
                     return  res.status(400).json(
@@ -121,7 +101,7 @@ const getUsuarios = async(req, res) => {
              //delete campos.password;
              //delete campos.google;
 
-        const usuarioActualizado = await Usuario.findByIdAndUpdate(uid, campos, {new: true});
+        const usuarioActualizado = await Hospital.findByIdAndUpdate(uid, campos, {new: true});
        
 
          res.json(
@@ -141,14 +121,14 @@ const getUsuarios = async(req, res) => {
     }
   }
 
-  const borrarUsuario = async(req, res = response) => {
+  const borrarHospital = async(req, res = response) => {
     
     const uid = req.params.id;
     const { email, password, nombre} = req.body; 
 
     try {
 
-        const usuarioDB = await Usuario.findById(uid);
+        const usuarioDB = await Hospital.findById(uid);
      
 
          if(!usuarioDB)
@@ -162,7 +142,7 @@ const getUsuarios = async(req, res) => {
         
             }
         
-        await Usuario.findByIdAndDelete(uid);
+        await Hospital.findByIdAndDelete(uid);
 
         res.json(
             {
@@ -183,8 +163,8 @@ const getUsuarios = async(req, res) => {
   }
 
   module.exports = {
-      getUsuarios,
-      crearUsuario,
-      actualizarUsuario,
-      borrarUsuario
+      getHospitales,
+      crearHospital,
+      actualizarHospital,
+      borrarHospital
   }

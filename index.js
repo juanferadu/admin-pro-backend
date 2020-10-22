@@ -29,7 +29,17 @@ dbConnection();
 
 //Rutas
 app.use('/api/usuarios',require('./routes/usuarios')); 
+app.use('/api/hospitales',require('./routes/hospitales')); 
+app.use('/api/medicos',require('./routes/medicos')); 
 app.use('/api/login',require('./routes/auth')); 
+app.use('/api/todo',require('./routes/busquedas')); 
+
+//Lectura y escritura de archivos
+app.use('/api/file',require('./routes/archivo')); 
+
+
+//Obtener y crear noticias
+app.use('/api/noticias',require('./routes/noticias')); 
 
 app.listen(process.env.port, () => {
   console.log(`Example app listening at http://localhost:${process.env.port}`)
